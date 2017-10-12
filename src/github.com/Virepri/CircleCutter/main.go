@@ -1,3 +1,171 @@
 package main
 
-func main(){}
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"time"
+	"sync"
+	"sort"
+)
+
+var GenerateQueue sync.WaitGroup
+
+type Point struct {
+	X,Y float64
+}
+
+type Circle struct {
+	Point Point
+	Radius float64
+}
+
+type Solution struct {
+	C Circle
+	N int
+}
+
+type Solutions []Solution
+
+func (S Solutions) Len() int {return len(S)}
+func (S Solutions) Swap(i, j int) {S[i], S[j] = S[j], S[i]}
+func (S Solutions) Less(i, j int) bool {return S[i].N < S[j].N}
+
+func main(){
+	rand.Seed(time.Now().Unix())
+	var p int
+	fmt.Scan(p)
+	Points := make([]Point,p)
+	for k := range Points {
+		fmt.Scan(Points[k].X,Points[k].Y)
+	}
+
+	Population := make([]Circle, 20)
+	GenerateQueue.Add(20)
+	for k := range Population {
+		go GenerateCircle(&Population[k])
+	}
+	GenerateQueue.Wait()
+
+	o := GeneticAlg(Points, Population, 50)
+	if o == Circle(nil) {
+		fmt.Println("No solution")
+	} else {
+		fmt.Println(o.Radius)
+		fmt.Println(o.Point.X,o.Point.Y)
+	}
+}
+
+func Distance(p1,p2 Point) float64 {
+	return math.Sqrt(math.Pow(math.Abs(p1.X-p2.X),2) + math.Pow(math.Abs(p1.Y-p2.Y),2))
+}
+
+func InsideCircle(p Point, c Circle) bool {
+	return Distance(c.Point,p) <= c.Radius
+}
+
+func InsideBox(c Circle) bool {
+	if c.Point.Y + c.Radius > 1 || c.Point.Y - c.Radius < 0 {
+		return false
+	}
+	if c.Point.X + c.Radius > 1 || c.Point.X - c.Radius < 0 {
+		return false
+	}
+	return true
+}
+
+func GenerateCircle(c *Circle) {
+	o := Circle{
+		Point:Point{
+			X:rand.Float64(),
+			Y:rand.Float64(),
+		},
+		Radius:rand.Float64(),
+	}
+	if InsideBox(o) {
+		*c = o
+		GenerateQueue.Done()
+		return
+	} else {
+		GenerateCircle(c)
+	}
+}
+
+func GenerateOff(c *Circle, from Circle) {
+	o := Circle{
+		Point:Point{
+			X:from.Point.X,
+			Y:from.Point.Y,
+		},
+		Radius:from.Radius,
+	}
+	o.Point.Y += (rand.Float64() - 0.5) * 0.1
+	o.Point.X += (rand.Float64() - 0.5) * 0.1
+	o.Radius += (rand.Float64() - 0.5) * 0.1
+	if InsideBox(o) {
+		*c = o
+		GenerateQueue.Done()
+		return
+	} else {
+		GenerateOff(c,from)
+	}
+}
+
+func CheckSolution(pts []Point, c Circle) (num uint) {
+	num = 0
+	for _,v := range pts {
+		if InsideCircle(v,c) {
+			num++
+		}
+	}
+	return num
+}
+
+//return nil after so many iterations
+func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
+	if i == 0 {
+		return Circle{}
+	}
+
+	Sols := make([]int, len(pop))
+	for k := range pop {
+		Sols[k] = int(CheckSolution(pts, pop[k]))
+	}
+
+	if ic := IntsContains(Sols, len(pts)/2); ic != -1 {
+		return pop[ic]
+	}
+
+	//So, no solutions straight up.
+	//Express as Solution{} and sort.
+	ES := make(Solutions, len(Sols))
+	for k,v := range Sols {
+		ES[k] = Solution{
+			C:pop[k],
+			N:v,
+		}
+	}
+	sort.Sort(ES)
+
+	//Generate the seed for the next generation. Make slight changes to these circles and test again.
+	Seed := make(Solutions, 4)
+	copy(Seed,ES)
+
+	Population := make([]Circle, 20)
+	GenerateQueue.Add(20)
+	for k := range Population {
+		go GenerateOff(&Population[k], Seed[k/5].C)
+	}
+	GenerateQueue.Wait()
+
+	return GeneticAlg(pts,Population,i-1)
+}
+
+func IntsContains(is []int, i int) int {
+	for k,v := range is {
+		if v == i {
+			return k
+		}
+	}
+	return -1
+}
