@@ -133,10 +133,24 @@ func CheckSolution(pts []Point, c Circle) (num uint) {
 	return num
 }
 
+type Circles []Circle
+
+func (C Circles) Len() int { return len(C) }
+func (C Circles) Swap(i,j int) {C[i], C[j] = C[j], C[i]}
+func (C Circles) Less(i,j int) bool {return C[i].Radius < C[j].Radius}
+
+var Circs Circles = Circles{}
+
 //return nil after so many iterations
 func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 	if i == 0 {
-		return Circle{}
+		//return Circle{}
+		if len(Circs) == 0 {
+			return Circle{}
+		} else {
+			sort.Sort(Circs)
+			return Circs[0]
+		}
 	}
 
 	Sols := make([]int, len(pop))
@@ -145,7 +159,9 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 	}
 
 	if ic := IntsContains(Sols, len(pts)/2); ic != -1 {
-		return pop[ic]
+		//return pop[ic]
+		Circs = append(Circs, pop[ic])
+		fmt.Println(pop[ic], 50000 - i)
 	}
 
 	//So, no solutions straight up.
