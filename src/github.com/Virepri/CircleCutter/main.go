@@ -34,10 +34,10 @@ func (S Solutions) Less(i, j int) bool {return S[i].N < S[j].N}
 func main(){
 	rand.Seed(time.Now().Unix())
 	var p int
-	fmt.Scan(p)
+	fmt.Scan(&p)
 	Points := make([]Point,p)
 	for k := range Points {
-		fmt.Scan(Points[k].X,Points[k].Y)
+		fmt.Scan(&Points[k].X,&Points[k].Y)
 	}
 
 	Population := make([]Circle, 20)
@@ -47,12 +47,13 @@ func main(){
 	}
 	GenerateQueue.Wait()
 
-	o := GeneticAlg(Points, Population, 50)
-	if o == Circle(nil) {
+	o := GeneticAlg(Points, Population, -1)
+	tmp := Circle{}
+	if o == tmp {
 		fmt.Println("No solution")
 	} else {
-		fmt.Println(o.Radius)
 		fmt.Println(o.Point.X,o.Point.Y)
+		fmt.Println(o.Radius)
 	}
 }
 
@@ -99,9 +100,10 @@ func GenerateOff(c *Circle, from Circle) {
 		},
 		Radius:from.Radius,
 	}
-	o.Point.Y += (rand.Float64() - 0.5) * 0.1
-	o.Point.X += (rand.Float64() - 0.5) * 0.1
-	o.Radius += (rand.Float64() - 0.5) * 0.1
+	o.Point.Y += (rand.Float64() - 0.5) * 0.5
+	o.Point.X += (rand.Float64() - 0.5) * 0.5
+	o.Radius += (rand.Float64() - 0.5) * 0.5
+
 	if InsideBox(o) {
 		*c = o
 		GenerateQueue.Done()
@@ -133,6 +135,7 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 	}
 
 	if ic := IntsContains(Sols, len(pts)/2); ic != -1 {
+		fmt.Println(pop[ic], Sols[ic])
 		return pop[ic]
 	}
 
@@ -144,6 +147,7 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 			C:pop[k],
 			N:v,
 		}
+		fmt.Println(ES[k])
 	}
 	sort.Sort(ES)
 
