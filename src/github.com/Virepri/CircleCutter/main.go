@@ -31,6 +31,8 @@ func (S Solutions) Len() int {return len(S)}
 func (S Solutions) Swap(i, j int) {S[i], S[j] = S[j], S[i]}
 func (S Solutions) Less(i, j int) bool {return S[i].N < S[j].N}
 
+var Quick bool = false
+
 func main(){
 	rand.Seed(time.Now().Unix())
 	var p int
@@ -160,8 +162,13 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 
 	if ic := IntsContains(Sols, len(pts)/2); ic != -1 {
 		//return pop[ic]
-		Circs = append(Circs, pop[ic])
-		fmt.Println(pop[ic], 50000 - i)
+		if !Quick {
+			Circs = append(Circs, pop[ic])
+			fmt.Println(pop[ic], 50000-i)
+		} else {
+			fmt.Println("Solved in",50000-i,"genetic cycles")
+			return pop[ic]
+		}
 	}
 
 	//So, no solutions straight up.
