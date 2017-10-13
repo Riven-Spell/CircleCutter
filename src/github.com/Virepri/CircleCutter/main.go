@@ -145,7 +145,6 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 	}
 
 	if ic := IntsContains(Sols, len(pts)/2); ic != -1 {
-		fmt.Println(pop[ic], Sols[ic])
 		return pop[ic]
 	}
 
