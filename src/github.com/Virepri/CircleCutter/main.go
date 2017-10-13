@@ -151,6 +151,7 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 			return Circle{}
 		} else {
 			sort.Sort(Circs)
+			fmt.Println("Found",len(Circs),"solutions in 50,000 cycles")
 			return Circs[0]
 		}
 	}
@@ -164,7 +165,6 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 		//return pop[ic]
 		if !Quick {
 			Circs = append(Circs, pop[ic])
-			fmt.Println(pop[ic], 50000-i)
 		} else {
 			fmt.Println("Solved in",50000-i,"genetic cycles")
 			return pop[ic]
