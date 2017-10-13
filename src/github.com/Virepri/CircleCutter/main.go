@@ -47,7 +47,7 @@ func main(){
 	}
 	GenerateQueue.Wait()
 
-	o := GeneticAlg(Points, Population, -1)
+	o := GeneticAlg(Points, Population, 50000)
 	tmp := Circle{}
 	if o == tmp {
 		fmt.Println("No solution")
@@ -100,9 +100,9 @@ func GenerateOff(c *Circle, from Circle) {
 		},
 		Radius:from.Radius,
 	}
-	o.Point.Y += (rand.Float64() - 0.5) * 0.5
-	o.Point.X += (rand.Float64() - 0.5) * 0.5
-	o.Radius += (rand.Float64() - 0.5) * 0.5
+	o.Point.Y = ClampF((rand.Float64() - rand.Float64()) + o.Point.X,0,1)
+	o.Point.X = ClampF((rand.Float64() - rand.Float64()) + o.Point.Y,0,1)
+	o.Radius = ClampF((rand.Float64() - rand.Float64()) + o.Radius,0,1)
 
 	if InsideBox(o) {
 		*c = o
@@ -111,6 +111,16 @@ func GenerateOff(c *Circle, from Circle) {
 	} else {
 		GenerateOff(c,from)
 	}
+}
+
+func ClampF(n,min,max float64) float64 {
+	if n > max {
+		return max
+	}
+	if n < min {
+		return min
+	}
+	return n
 }
 
 func CheckSolution(pts []Point, c Circle) (num uint) {
@@ -147,7 +157,6 @@ func GeneticAlg(pts []Point, pop []Circle, i int) Circle {
 			C:pop[k],
 			N:v,
 		}
-		fmt.Println(ES[k])
 	}
 	sort.Sort(ES)
 
